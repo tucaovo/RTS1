@@ -8,7 +8,6 @@
 #include "InputMappingContext.h"
 #include "PlayerPawn.generated.h"
 
-
 UCLASS()
 class RTS1_API APlayerPawn : public ACharacter
 {
@@ -18,6 +17,8 @@ public:
 	// Sets default values for this character's properties
 	APlayerPawn();
 	int MousePositionX, MousePositionY, MouseStartXPosition, MouseStartYPosition;
+
+	FVector WorldLocation, WorldDirection;
 
 protected:
 	// Called when the game starts or when spawned
@@ -31,6 +32,10 @@ protected:
 		UInputAction* SelectAction;
 	UPROPERTY(EditAnywhere, Category = "EnhancedInput")
 		UInputAction* AfterSelectAction;
+	UPROPERTY(EditAnywhere, Category = "EnhancedInput")
+		UInputAction* ClickSelectAction;
+	UPROPERTY(EditAnywhere, Category = "EnhancedInput")
+		UInputAction* RightClickAction;
 
 	UPROPERTY(EditAnywhere, Category = "Scalling")
 		float ScrollScallingFactor;
@@ -46,6 +51,12 @@ protected:
 		void Scroll(const FInputActionValue& Value);
 	UFUNCTION()
 		void AfterSelect(const FInputActionValue& Value);
+	UFUNCTION()
+		void ClickSelect(const FInputActionValue& Value);
+	UFUNCTION()
+		void RightClick(const FInputActionValue& Value);
+
+
 
 public:	
 	// Called every frame

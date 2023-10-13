@@ -13,5 +13,9 @@ UCLASS()
 class RTS1_API ARTS1GameMode : public AGameModeBase
 {
 	GENERATED_BODY()
+
+public:
+	virtual void BeginPlay() override;
+	/*TArray<AActor*> OwnUnits;*/
 	
 };

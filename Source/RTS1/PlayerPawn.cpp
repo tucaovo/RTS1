@@ -6,6 +6,9 @@
 #include "Components/InputComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/HUD.h"
+#include "RTS1PlayerController.h"
+#include "Kismet/GameplayStatics.h"
+#include "BaseUnit.h"
 #include "EnhancedInputComponent.h"
 
 
@@ -22,7 +25,6 @@ void APlayerPawn::BeginPlay()
 	{
 		Subsystem->AddMappingContext(InputMappingContext, 0);
 	}
-	PlayerController->SetShowMouseCursor(true);
 }
 
 void APlayerPawn::Tick(float DeltaTime)
@@ -44,6 +46,8 @@ void APlayerPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &APlayerPawn::Move);
 		EnhancedInputComponent->BindAction(SelectAction, ETriggerEvent::Ongoing, this, &APlayerPawn::Select);
 		EnhancedInputComponent->BindAction(AfterSelectAction, ETriggerEvent::Triggered, this, &APlayerPawn::AfterSelect);
+		EnhancedInputComponent->BindAction(ClickSelectAction, ETriggerEvent::Triggered, this, &APlayerPawn::ClickSelect);
+		EnhancedInputComponent->BindAction(RightClickAction, ETriggerEvent::Triggered, this, &APlayerPawn::RightClick);
 	}
 }
 
@@ -77,4 +81,21 @@ void APlayerPawn::AfterSelect(const FInputActionValue& Value) {
 	APlayerController* PlayerController = CastChecked<APlayerController>(GetController());
 	AHUD* Hud = PlayerController->GetHUD();
 	Hud->bShowHUD = false;
+}
+
+void APlayerPawn::ClickSelect(const FInputActionValue& Value) {
+	APlayerController* PlayerController = CastChecked<APlayerController>(GetController());
+	double XPosition, YPosition;
+	PlayerController->GetMousePosition(XPosition, YPosition);
+	PlayerController->DeprojectMousePositionToWorld(WorldLocation, WorldDirection);
+	//UE_LOG(LogTemp, Error, TEXT("World Location = %s  ,  World Direction = %s"), *WorldLocation.ToString(), *WorldDirection.ToString());
+}
+
+void APlayerPawn::RightClick(const FInputActionValue& Value) {
+	ARTS1PlayerController* PlayerController = CastChecked<ARTS1PlayerController>(GetController());
+	double XPosition, YPosition;
+	PlayerController->GetMousePosition(XPosition, YPosition);
+	PlayerController->DeprojectMousePositionToWorld(WorldLocation, WorldDirection);
+	UE_LOG(LogTemp, Error, TEXT("World Location = %s  ,  World Direction = %s"), *WorldLocation.ToString(), *WorldDirection.ToString());
+	PlayerController->MoveSelectedUnits();
 }

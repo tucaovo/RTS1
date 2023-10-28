@@ -43,12 +43,13 @@ void ABaseUnit::WhenClickOverTheUnit(UPrimitiveComponent* PrimComp, FKey InKey) 
 	ARTS1PlayerController* PlayerController =Cast<ARTS1PlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
 	if (this->PlayerControllerNumber==0) {
 		PlayerController->SelectedUnits.Add(this);
-		UE_LOG(LogTemp, Error, TEXT("YEEEE"));
 	}
-	UE_LOG(LogTemp, Log, TEXT("click"));
 }
 
-void ABaseUnit::MoveToLocation(FVector WorldLocation, FVector WorldDirection) {
-	//HERE YOU MOVE THEM
-	UE_LOG(LogTemp, Error, TEXT("they move"));
+void ABaseUnit::MoveToLocation(FVector MouseLocationInWorld) {
+	FVector InitialPos = GetRootComponent()->GetComponentLocation();
+	FVector DirectionToMoveTo = MouseLocationInWorld - InitialPos;
+	DirectionToMoveTo.Normalize();
+	DirectionToMoveTo.Z = 0.f;
+	AddMovementInput(DirectionToMoveTo);
 }

@@ -20,7 +20,6 @@ void ARTS1PlayerController::BeginPlay() {
 void ARTS1PlayerController::MoveSelectedUnits() {
 	APlayerPawn* PlayerPawn = Cast<APlayerPawn>(GetPawn());
 	for (AActor* SelectedUnit : SelectedUnits) {
-		Cast<ABaseUnit>(SelectedUnit)->MoveToLocation(PlayerPawn->WorldLocation, PlayerPawn->WorldDirection); //------------>>>>>>>>>>>>>>>>big PROBLEMOOO. INCARCEA SA SCHIMBI IN ABASEUNIT
-	//---->SAUY POATE CAST DYNAMIIIIC ???????
+		Cast<ABaseUnit>(SelectedUnit)->MoveToLocation(PlayerPawn->MouseLocationInWorld); 
 	}
 }

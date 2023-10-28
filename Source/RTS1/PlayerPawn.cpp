@@ -93,9 +93,9 @@ void APlayerPawn::ClickSelect(const FInputActionValue& Value) {
 
 void APlayerPawn::RightClick(const FInputActionValue& Value) {
 	ARTS1PlayerController* PlayerController = CastChecked<ARTS1PlayerController>(GetController());
-	double XPosition, YPosition;
-	PlayerController->GetMousePosition(XPosition, YPosition);
 	PlayerController->DeprojectMousePositionToWorld(WorldLocation, WorldDirection);
-	UE_LOG(LogTemp, Error, TEXT("World Location = %s  ,  World Direction = %s"), *WorldLocation.ToString(), *WorldDirection.ToString());
+	FHitResult HitResult;
+	GetWorld()->LineTraceSingleByChannel(HitResult, WorldLocation, WorldLocation + WorldDirection * 5000.f, ECollisionChannel::ECC_WorldStatic);
+	MouseLocationInWorld = HitResult.ImpactPoint;
 	PlayerController->MoveSelectedUnits();
 }

@@ -18,6 +18,7 @@ public:
 	APlayerPawn();
 	int MousePositionX, MousePositionY, MouseStartXPosition, MouseStartYPosition;
 
+	FVector MouseLocationInWorld;
 	FVector WorldLocation, WorldDirection;
 
 protected:

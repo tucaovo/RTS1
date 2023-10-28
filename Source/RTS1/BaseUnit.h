@@ -33,5 +33,5 @@ public:
 	UFUNCTION()
 	void WhenClickOverTheUnit(UPrimitiveComponent* PrimComp, FKey InKey);
 
-	void MoveToLocation(FVector WorldLocation, FVector WorldDirection);
+	void MoveToLocation(FVector MouseLocationInWorld);
 };

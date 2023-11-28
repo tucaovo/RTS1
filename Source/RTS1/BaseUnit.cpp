@@ -3,10 +3,9 @@
 
 #include "BaseUnit.h"
 #include "Components/CapsuleComponent.h"
-#include "RTS1PlayerController.h"
 #include "Kismet/GameplayStatics.h"
 #include "PlayerPawn.h"
-
+#include "RTS1PlayerController.h"
 
 // Sets default values
 ABaseUnit::ABaseUnit()
@@ -41,7 +40,12 @@ void ABaseUnit::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void ABaseUnit::WhenClickOverTheUnit(UPrimitiveComponent* PrimComp, FKey InKey) {
 	ARTS1PlayerController* PlayerController =Cast<ARTS1PlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
-	if (this->PlayerControllerNumber==0) {
+	APawn* PlayerPawn = PlayerController->GetPawn();
+	if (this->PlayerControllerNumber==0 && Cast<APlayerPawn>(PlayerPawn)->bShiftPressed==1) {
+		PlayerController->SelectedUnits.Add(this);
+	}
+	else if (this->PlayerControllerNumber == 0 && Cast<APlayerPawn>(PlayerPawn)->bShiftPressed == 0) {
+		PlayerController->SelectedUnits.Empty();
 		PlayerController->SelectedUnits.Add(this);
 	}
 }

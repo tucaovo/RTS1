@@ -4,18 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
-#include "RtsHUD.generated.h"
+#include "RTS1HUD.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class RTS1_API ARtsHUD : public AHUD
+class RTS1_API ARTS1HUD : public AHUD
 {
 	GENERATED_BODY()
-	
-public:
-	virtual void DrawHUD() override;
-	virtual void Tick(float DeltaTime) override;
-	virtual void BeginPlay() override;
+		virtual void DrawHUD() override;
 };

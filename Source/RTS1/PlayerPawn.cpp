@@ -10,6 +10,11 @@
 #include "Kismet/GameplayStatics.h"
 #include "BaseUnit.h"
 #include "EnhancedInputComponent.h"
+#include "Blueprint/UserWidget.h"
+#include "RTS1UserWidget.h"
+#include "Camera/CameraComponent.h"
+#include "RTS1HUD.h"
+
 
 
 APlayerPawn::APlayerPawn()
@@ -25,6 +30,10 @@ void APlayerPawn::BeginPlay()
 	{
 		Subsystem->AddMappingContext(InputMappingContext, 0);
 	}
+	//if (RTS1UserWidgetBPClass) {
+	//	RTS1UserWidget = CreateWidget<URTS1UserWidget>(PlayerController, RTS1UserWidgetBPClass);
+	//}
+	PlayerController->GetHUD()->ShowHUD();
 }
 
 void APlayerPawn::Tick(float DeltaTime)
@@ -44,10 +53,10 @@ void APlayerPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	{
 		EnhancedInputComponent->BindAction(ScrollAction, ETriggerEvent::Triggered, this, &APlayerPawn::Scroll);
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &APlayerPawn::Move);
-		EnhancedInputComponent->BindAction(SelectAction, ETriggerEvent::Ongoing, this, &APlayerPawn::Select);
-		EnhancedInputComponent->BindAction(AfterSelectAction, ETriggerEvent::Triggered, this, &APlayerPawn::AfterSelect);
-		EnhancedInputComponent->BindAction(ClickSelectAction, ETriggerEvent::Triggered, this, &APlayerPawn::ClickSelect);
+		EnhancedInputComponent->BindAction(SelectAction, ETriggerEvent::Triggered, this, &APlayerPawn::Select);
 		EnhancedInputComponent->BindAction(RightClickAction, ETriggerEvent::Triggered, this, &APlayerPawn::RightClick);
+		EnhancedInputComponent->BindAction(ShiftAction, ETriggerEvent::Triggered, this, &APlayerPawn::Shift);
+		EnhancedInputComponent->BindAction(AfterSelectAction, ETriggerEvent::Triggered, this, &APlayerPawn::AfterSelect);
 	}
 }
 
@@ -56,7 +65,7 @@ void APlayerPawn::Move(const FInputActionValue& Value) {
 	const FVector2d MovementVector = Value.Get<FInputActionValue::Axis2D>();
 	FVector RightVector = GetActorRightVector();
 	FVector ForwardVector = GetActorForwardVector();
-	AddMovementInput(ForwardVector, MovementVector.X*MoveScallingFactor);
+	AddMovementInput(ForwardVector, MovementVector.X * MoveScallingFactor);
 	AddMovementInput(RightVector, MovementVector.Y * MoveScallingFactor);
 }
 
@@ -68,27 +77,18 @@ void APlayerPawn::Scroll(const FInputActionValue& Value) {
 }
 
 void APlayerPawn::Select(const FInputActionValue& Value) {
-	APlayerController* PlayerController = CastChecked<APlayerController>(GetController());
-	AHUD* Hud = PlayerController->GetHUD();
-	Hud->bShowHUD = true;
-	double XPosition, YPosition;
-	PlayerController->GetMousePosition(XPosition,YPosition);
-	MouseStartXPosition=XPosition;
-	MouseStartYPosition = YPosition;
-}
-
-void APlayerPawn::AfterSelect(const FInputActionValue& Value) {
-	APlayerController* PlayerController = CastChecked<APlayerController>(GetController());
-	AHUD* Hud = PlayerController->GetHUD();
-	Hud->bShowHUD = false;
-}
-
-void APlayerPawn::ClickSelect(const FInputActionValue& Value) {
-	APlayerController* PlayerController = CastChecked<APlayerController>(GetController());
+	ARTS1PlayerController* PlayerController = CastChecked<ARTS1PlayerController>(GetController());
 	double XPosition, YPosition;
 	PlayerController->GetMousePosition(XPosition, YPosition);
-	PlayerController->DeprojectMousePositionToWorld(WorldLocation, WorldDirection);
-	//UE_LOG(LogTemp, Error, TEXT("World Location = %s  ,  World Direction = %s"), *WorldLocation.ToString(), *WorldDirection.ToString());
+	FVector2D FirstPoint = FVector2D(300, 300);
+	FVector2D SecondPoint = FVector2D(-200, -200);
+	AHUD* HUD = Cast<AHUD>(PlayerController->GetHUD());
+	if (HUD->bShowHUD == false)
+	{
+		MouseStartXPosition = XPosition;
+		MouseStartYPosition = YPosition;
+		HUD->ShowHUD();
+	}
 }
 
 void APlayerPawn::RightClick(const FInputActionValue& Value) {
@@ -98,4 +98,45 @@ void APlayerPawn::RightClick(const FInputActionValue& Value) {
 	GetWorld()->LineTraceSingleByChannel(HitResult, WorldLocation, WorldLocation + WorldDirection * 5000.f, ECollisionChannel::ECC_WorldStatic);
 	MouseLocationInWorld = HitResult.ImpactPoint;
 	PlayerController->MoveSelectedUnits();
+}
+
+void APlayerPawn::Shift(const FInputActionValue& Value)
+{
+	bShiftPressed = Value.Get<bool>();
+}
+
+void APlayerPawn::AfterSelect(const FInputActionValue& Value)
+{
+	APlayerController* PlayerController = CastChecked<APlayerController>(GetController());
+	AHUD* HUD = Cast<AHUD>(PlayerController->GetHUD());
+	if (HUD->bShowHUD == true)
+	{
+		HUD->ShowHUD();
+		GetUnitsUnderRect();
+	}
+}
+
+void APlayerPawn::GetUnitsUnderRect() {
+	UGameplayStatics::GetAllActorsOfClass(this, ABaseUnit::StaticClass(), SecondaryArray);
+}
+
+FVector APlayerPawn::BuildLineTrace() {
+	FHitResult OutHit;
+	FVector Start;
+	FVector End;
+	FCollisionQueryParams CollisionParams;
+	if (GetComponentByClass<UCameraComponent>()) {
+		Start = GetComponentByClass<UCameraComponent>()->GetComponentLocation();
+		End = (GetComponentByClass<UCameraComponent>()->GetForwardVector() * 1000.f) + Start;
+		GetWorld()->LineTraceSingleByChannel(OutHit, Start, End, ECC_Visibility, CollisionParams);
+		if (OutHit.bBlockingHit) {
+			return OutHit.ImpactPoint;
+		}
+		else {
+			return FVector(0, 0, 0);
+		}
+	}
+	else {
+		return FVector(0, 0, 0);
+	}
 }

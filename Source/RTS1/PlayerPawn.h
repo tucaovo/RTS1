@@ -8,6 +8,9 @@
 #include "InputMappingContext.h"
 #include "PlayerPawn.generated.h"
 
+class URTS1UserWidget;
+class ABaseUnit;
+
 UCLASS()
 class RTS1_API APlayerPawn : public ACharacter
 {
@@ -18,8 +21,20 @@ public:
 	APlayerPawn();
 	int MousePositionX, MousePositionY, MouseStartXPosition, MouseStartYPosition;
 
+	UPROPERTY(EditAnywhere);
+	bool bShiftPressed = false;
+
 	FVector MouseLocationInWorld;
 	FVector WorldLocation, WorldDirection;
+
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<ABaseUnit> BaseUnitClass;
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<URTS1UserWidget> RTS1UserWidgetBPClass;
+	UPROPERTY()
+		URTS1UserWidget* RTS1UserWidget;
+	UPROPERTY(EditAnywhere)
+		TArray<AActor*> SecondaryArray;
 
 protected:
 	// Called when the game starts or when spawned
@@ -32,17 +47,16 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "EnhancedInput")
 		UInputAction* SelectAction;
 	UPROPERTY(EditAnywhere, Category = "EnhancedInput")
-		UInputAction* AfterSelectAction;
-	UPROPERTY(EditAnywhere, Category = "EnhancedInput")
-		UInputAction* ClickSelectAction;
-	UPROPERTY(EditAnywhere, Category = "EnhancedInput")
 		UInputAction* RightClickAction;
+	UPROPERTY(EditAnywhere, Category = "EnhancedInput")
+		UInputAction* ShiftAction;
+	UPROPERTY(EditAnywhere, Category = "EnhancedInput")
+		UInputAction* AfterSelectAction;
 
 	UPROPERTY(EditAnywhere, Category = "Scalling")
 		float ScrollScallingFactor;
 	UPROPERTY(EditAnywhere, Category = "Scalling")
 		float MoveScallingFactor;
-
 
 	UFUNCTION()
 		void Select(const FInputActionValue& Value);
@@ -51,11 +65,11 @@ protected:
 	UFUNCTION()
 		void Scroll(const FInputActionValue& Value);
 	UFUNCTION()
-		void AfterSelect(const FInputActionValue& Value);
-	UFUNCTION()
-		void ClickSelect(const FInputActionValue& Value);
-	UFUNCTION()
 		void RightClick(const FInputActionValue& Value);
+	UFUNCTION()
+		void Shift(const FInputActionValue& Value);
+	UFUNCTION()
+		void AfterSelect(const FInputActionValue& Value);
 
 
 
@@ -66,6 +80,10 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	void GetUnitsUnderRect();
+
 	virtual void BeginPlay() override;
+
+	FVector BuildLineTrace();
 
 };

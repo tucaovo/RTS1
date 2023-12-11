@@ -13,6 +13,7 @@
 #include "Blueprint/UserWidget.h"
 #include "RTS1UserWidget.h"
 #include "Camera/CameraComponent.h"
+#include "GenericPlatform/GenericPlatformMath.h"
 #include "RTS1HUD.h"
 
 
@@ -30,9 +31,6 @@ void APlayerPawn::BeginPlay()
 	{
 		Subsystem->AddMappingContext(InputMappingContext, 0);
 	}
-	//if (RTS1UserWidgetBPClass) {
-	//	RTS1UserWidget = CreateWidget<URTS1UserWidget>(PlayerController, RTS1UserWidgetBPClass);
-	//}
 	PlayerController->GetHUD()->ShowHUD();
 }
 
@@ -87,6 +85,7 @@ void APlayerPawn::Select(const FInputActionValue& Value) {
 	{
 		MouseStartXPosition = XPosition;
 		MouseStartYPosition = YPosition;
+		FirstLineTrace=BuildLineTrace();
 		HUD->ShowHUD();
 	}
 }
@@ -112,31 +111,73 @@ void APlayerPawn::AfterSelect(const FInputActionValue& Value)
 	if (HUD->bShowHUD == true)
 	{
 		HUD->ShowHUD();
+		SecondLineTrace = BuildLineTrace();
 		GetUnitsUnderRect();
 	}
 }
 
 void APlayerPawn::GetUnitsUnderRect() {
 	UGameplayStatics::GetAllActorsOfClass(this, ABaseUnit::StaticClass(), SecondaryArray);
+	float UnitX, UnitY;
+	FVector2D FirstPoint = FVector2D(FirstLineTrace.X, FirstLineTrace.Y);
+	FVector2D SecondPoint = FVector2D(SecondLineTrace.X, SecondLineTrace.Y);
+	ARTS1PlayerController* PlayerController = Cast<ARTS1PlayerController>(this->GetController());
+	PlayerController->SelectedUnits.Empty();
+	ReshapeRectangle(FirstPoint, SecondPoint);
+	for (int i = 0; i < SecondaryArray.Num(); i++) {
+		UnitX=SecondaryArray[i]->GetActorLocation().X;
+		UnitY = SecondaryArray[i]->GetActorLocation().Y;
+		if (UnitX >= FirstPoint.X && UnitX <= SecondPoint.X && UnitY >= FirstPoint.Y && UnitY <= SecondPoint.Y) {
+			PlayerController->SelectedUnits.Add(SecondaryArray[i]);
+		}
+	}
 }
 
 FVector APlayerPawn::BuildLineTrace() {
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
 	FHitResult OutHit;
 	FVector Start;
 	FVector End;
+	PlayerController->DeprojectMousePositionToWorld(Start, End);
 	FCollisionQueryParams CollisionParams;
-	if (GetComponentByClass<UCameraComponent>()) {
-		Start = GetComponentByClass<UCameraComponent>()->GetComponentLocation();
-		End = (GetComponentByClass<UCameraComponent>()->GetForwardVector() * 1000.f) + Start;
-		GetWorld()->LineTraceSingleByChannel(OutHit, Start, End, ECC_Visibility, CollisionParams);
+		End = (End * 100000.f) + Start;
+		GetWorld()->LineTraceSingleByChannel(OutHit, Start, End, ECC_GameTraceChannel1, CollisionParams);
 		if (OutHit.bBlockingHit) {
-			return OutHit.ImpactPoint;
+			return OutHit.ImpactPoint;			
 		}
 		else {
-			return FVector(0, 0, 0);
+			return FVector(-1, -1, -1);
 		}
-	}
-	else {
-		return FVector(0, 0, 0);
-	}
+}
+
+void APlayerPawn::ReshapeRectangle(FVector2D& FirstPoint, FVector2D& SecondPoint) {
+	FVector2D ThirdPoint, ForthPoint;
+	FVector2D MockPoint = FirstPoint;
+	FVector2D MockPoint2 = SecondPoint;
+	ThirdPoint.X = FirstPoint.X;
+	ThirdPoint.Y = SecondPoint.Y;
+	ForthPoint.X = SecondPoint.X;
+	ForthPoint.Y = FirstPoint.Y;
+	float FirstPointValue=FirstPoint.X+FirstPoint.Y, 
+		SecondPointValue=SecondPoint.X+SecondPoint.Y, 
+		ThirdPointValue=ThirdPoint.X+ThirdPoint.Y, 
+		ForthPointValue=ForthPoint.X+ForthPoint.Y;
+	float Min = FGenericPlatformMath::Min(FGenericPlatformMath::Min(FirstPointValue, SecondPointValue), FGenericPlatformMath::Min(ThirdPointValue, ForthPointValue));
+	float Max = FGenericPlatformMath::Max(FGenericPlatformMath::Max(FirstPointValue, SecondPointValue), FGenericPlatformMath::Max(ThirdPointValue, ForthPointValue));
+	if (Min == FirstPointValue)
+		FirstPoint = MockPoint;
+	if (Min == SecondPointValue)
+		FirstPoint = MockPoint2;
+	if (Min == ThirdPointValue)
+		FirstPoint = ThirdPoint;
+	if (Min == ForthPointValue)
+		FirstPoint = ForthPoint;
+	if (Max == FirstPointValue)
+		SecondPoint = MockPoint;
+	if (Max == SecondPointValue)
+		SecondPoint = MockPoint2;
+	if (Max == ThirdPointValue)
+		SecondPoint = ThirdPoint;
+	if (Max == ForthPointValue)
+		SecondPoint = ForthPoint;
 }

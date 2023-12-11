@@ -26,6 +26,7 @@ public:
 
 	FVector MouseLocationInWorld;
 	FVector WorldLocation, WorldDirection;
+	FVector FirstLineTrace, SecondLineTrace;
 
 	UPROPERTY(EditAnywhere)
 		TSubclassOf<ABaseUnit> BaseUnitClass;
@@ -85,5 +86,7 @@ public:
 	virtual void BeginPlay() override;
 
 	FVector BuildLineTrace();
+
+	void ReshapeRectangle(FVector2D& FirstPoint, FVector2D& SecondPoint);
 
 };

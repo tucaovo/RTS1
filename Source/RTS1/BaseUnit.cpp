@@ -5,17 +5,15 @@
 #include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "PlayerPawn.h"
+#include "Blueprint/AIBlueprintHelperLibrary.h"
 #include "RTS1PlayerController.h"
 
-// Sets default values
 ABaseUnit::ABaseUnit()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
+	UGameplayStatics::GetAllActorsOfClass(this, ABaseUnit::StaticClass(), SecondaryArray);
 }
 
-// Called when the game starts or when spawned
 void ABaseUnit::BeginPlay()
 {
 	Super::BeginPlay();
@@ -24,14 +22,12 @@ void ABaseUnit::BeginPlay()
 	}
 }
 
-// Called every frame
 void ABaseUnit::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	LookForEnemies();
 }
 
-// Called to bind functionality to input
 void ABaseUnit::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -41,19 +37,36 @@ void ABaseUnit::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 void ABaseUnit::WhenClickOverTheUnit(UPrimitiveComponent* PrimComp, FKey InKey) {
 	ARTS1PlayerController* PlayerController =Cast<ARTS1PlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
 	APawn* PlayerPawn = PlayerController->GetPawn();
-	if (this->PlayerControllerNumber==0 && Cast<APlayerPawn>(PlayerPawn)->bShiftPressed==1) {
+	if (this->IsEnemy==0 && Cast<APlayerPawn>(PlayerPawn)->bShiftPressed==1) {
 		PlayerController->SelectedUnits.Add(this);
 	}
-	else if (this->PlayerControllerNumber == 0 && Cast<APlayerPawn>(PlayerPawn)->bShiftPressed == 0) {
+	else if (this->IsEnemy == 0 && Cast<APlayerPawn>(PlayerPawn)->bShiftPressed == 0) {
 		PlayerController->SelectedUnits.Empty();
 		PlayerController->SelectedUnits.Add(this);
+	}
+	else {
+		PlayerController->SelectedUnits.Empty();
 	}
 }
 
 void ABaseUnit::MoveToLocation(FVector MouseLocationInWorld) {
+	float FinishX= MouseLocationInWorld.X, FinishY=MouseLocationInWorld.Y;
 	FVector InitialPos = GetRootComponent()->GetComponentLocation();
 	FVector DirectionToMoveTo = MouseLocationInWorld - InitialPos;
 	DirectionToMoveTo.Normalize();
-	DirectionToMoveTo.Z = 0.f;
-	AddMovementInput(DirectionToMoveTo);
+	UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), MouseLocationInWorld);
+
+}
+
+void ABaseUnit::LookForEnemies() {
+	FVector UnitPosition = this->GetActorLocation();
+	float X = UnitPosition.X;
+	float Y = UnitPosition.Y;
+	FVector ForwardVector(X + Range, Y, 0);
+	FVector RightVector(X , Y + Range, 0);
+	FVector BackwardVector(X - Range, Y, 0);
+	FVector LeftVector(X, Y - Range, 0);
+	for (int i = 0; i <= Range; i++) {
+
+	}
 }

@@ -124,10 +124,12 @@ void APlayerPawn::GetUnitsUnderRect() {
 	ARTS1PlayerController* PlayerController = Cast<ARTS1PlayerController>(this->GetController());
 	PlayerController->SelectedUnits.Empty();
 	ReshapeRectangle(FirstPoint, SecondPoint);
+	ABaseUnit* BaseUnit;
 	for (int i = 0; i < SecondaryArray.Num(); i++) {
 		UnitX=SecondaryArray[i]->GetActorLocation().X;
 		UnitY = SecondaryArray[i]->GetActorLocation().Y;
-		if (UnitX >= FirstPoint.X && UnitX <= SecondPoint.X && UnitY >= FirstPoint.Y && UnitY <= SecondPoint.Y) {
+		BaseUnit = Cast<ABaseUnit>(SecondaryArray[i]);
+		if (UnitX >= FirstPoint.X && UnitX <= SecondPoint.X && UnitY >= FirstPoint.Y && UnitY <= SecondPoint.Y && BaseUnit->IsEnemy==0) {
 			PlayerController->SelectedUnits.Add(SecondaryArray[i]);
 		}
 	}

@@ -16,8 +16,21 @@ public:
 	// Sets default values for this character's properties
 	ABaseUnit();
 
-	UPROPERTY(EditAnywhere, Category = "GetUnitDebug")
-		int PlayerControllerNumber = 0;
+	UPROPERTY(EditAnywhere, Category = "UnitDebug")
+		int IsEnemy = 0;
+	UPROPERTY(EditAnywhere, Category = "UnitDebug")
+		int Morale=100;
+	UPROPERTY(EditAnywhere, Category = "UnitDebug")
+		int Manpower=100;
+	UPROPERTY(EditAnywhere, Category = "UnitDebug")
+		int Equipment=100;
+	UPROPERTY(EditAnywhere, Category = "UnitDebug")
+		int Rations=100;
+	UPROPERTY(EditAnywhere, Category = "UnitDebug")
+		int Range = 350;
+
+	UPROPERTY(EditAnywhere)
+		TArray<AActor*> SecondaryArray;
 
 protected:
 	// Called when the game starts or when spawned
@@ -34,5 +47,7 @@ public:
 	void WhenClickOverTheUnit(UPrimitiveComponent* PrimComp, FKey InKey);
 
 	void MoveToLocation(FVector MouseLocationInWorld);
+
+	void LookForEnemies();
 
 };

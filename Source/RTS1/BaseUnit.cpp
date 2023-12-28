@@ -6,6 +6,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "PlayerPawn.h"
 #include "Blueprint/AIBlueprintHelperLibrary.h"
+#include "Components/SphereComponent.h"
 #include "RTS1PlayerController.h"
 
 ABaseUnit::ABaseUnit()
@@ -20,11 +21,21 @@ void ABaseUnit::BeginPlay()
 	if (UCapsuleComponent* Capsule = GetComponentByClass<UCapsuleComponent>()) {
 		Capsule->OnClicked.AddDynamic(this, &ABaseUnit::WhenClickOverTheUnit);
 	}
+	RangeSphere = GetComponentByClass<UStaticMeshComponent>();
+	if (RangeSphere) {
+		UE_LOG(LogTemp, Warning, TEXT("Found it!"));
+		RangeSphere->SetWorldScale3D(FVector((Range/100)*2.4, (Range / 100) * 2.4, (Range / 100) * 2.4));
+	}
+	else {
+		UE_LOG(LogTemp, Error, TEXT("nu!"));
+	}
+	
 }
 
 void ABaseUnit::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	RangeSphere->GetOverlappingActors(NearUnits, ABaseUnit::StaticClass());
 	LookForEnemies();
 }
 
@@ -51,11 +62,7 @@ void ABaseUnit::WhenClickOverTheUnit(UPrimitiveComponent* PrimComp, FKey InKey) 
 
 void ABaseUnit::MoveToLocation(FVector MouseLocationInWorld) {
 	float FinishX= MouseLocationInWorld.X, FinishY=MouseLocationInWorld.Y;
-	FVector InitialPos = GetRootComponent()->GetComponentLocation();
-	FVector DirectionToMoveTo = MouseLocationInWorld - InitialPos;
-	DirectionToMoveTo.Normalize();
 	UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), MouseLocationInWorld);
-
 }
 
 void ABaseUnit::LookForEnemies() {
@@ -66,7 +73,8 @@ void ABaseUnit::LookForEnemies() {
 	FVector RightVector(X , Y + Range, 0);
 	FVector BackwardVector(X - Range, Y, 0);
 	FVector LeftVector(X, Y - Range, 0);
-	for (int i = 0; i <= Range; i++) {
-
-	}
+	DrawDebugLine(GetWorld(), ForwardVector, ForwardVector * (0, 0, 100), FColor::Black, false, 0.1f);
+	DrawDebugLine(GetWorld(), RightVector, RightVector * (0, 0, 100), FColor::Black, false, 0.1f);
+	DrawDebugLine(GetWorld(), BackwardVector, BackwardVector * (0, 0, 100), FColor::Black, false, 0.1f);
+	DrawDebugLine(GetWorld(), LeftVector, LeftVector * (0, 0, 100), FColor::Black, false, 0.1f);
 }

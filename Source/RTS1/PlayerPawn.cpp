@@ -94,7 +94,7 @@ void APlayerPawn::RightClick(const FInputActionValue& Value) {
 	ARTS1PlayerController* PlayerController = CastChecked<ARTS1PlayerController>(GetController());
 	PlayerController->DeprojectMousePositionToWorld(WorldLocation, WorldDirection);
 	FHitResult HitResult;
-	GetWorld()->LineTraceSingleByChannel(HitResult, WorldLocation, WorldLocation + WorldDirection * 5000.f, ECollisionChannel::ECC_WorldStatic);
+	GetWorld()->LineTraceSingleByChannel(HitResult, WorldLocation, WorldLocation + WorldDirection * 10000.f, ECC_GameTraceChannel1);
 	MouseLocationInWorld = HitResult.ImpactPoint;
 	PlayerController->MoveSelectedUnits();
 }
@@ -137,6 +137,7 @@ void APlayerPawn::GetUnitsUnderRect() {
 
 FVector APlayerPawn::BuildLineTrace() {
 	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
+	TArray<FHitResult> OutHits;
 	FHitResult OutHit;
 	FVector Start;
 	FVector End;

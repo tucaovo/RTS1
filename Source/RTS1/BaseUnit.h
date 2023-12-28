@@ -7,6 +7,8 @@
 #include "UObject/SparseDelegate.h"
 #include "BaseUnit.generated.h"
 
+class UStaticMeshComponent;
+
 UCLASS()
 class RTS1_API ABaseUnit : public ACharacter
 {
@@ -31,6 +33,13 @@ public:
 
 	UPROPERTY(EditAnywhere)
 		TArray<AActor*> SecondaryArray;
+	UPROPERTY(EditAnywhere)
+		TArray<AActor*> NearUnits;
+
+	UStaticMeshComponent* RangeSphere;
+	
+	//UPROPERTY(EditAnywhere)
+	//USphereComponent* RangeSphere;
 
 protected:
 	// Called when the game starts or when spawned

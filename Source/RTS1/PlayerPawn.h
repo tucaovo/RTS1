@@ -36,6 +36,8 @@ public:
 		URTS1UserWidget* RTS1UserWidget;
 	UPROPERTY(EditAnywhere)
 		TArray<AActor*> SecondaryArray;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<FVector2D> SecondaryLocationArray;
 
 protected:
 	// Called when the game starts or when spawned
@@ -72,8 +74,6 @@ protected:
 	UFUNCTION()
 		void AfterSelect(const FInputActionValue& Value);
 
-
-
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -85,8 +85,9 @@ public:
 
 	virtual void BeginPlay() override;
 
-	FVector BuildLineTrace();
+	FVector BuildLineTrace(ECollisionChannel CollisionChannel);
 
 	void ReshapeRectangle(FVector2D& FirstPoint, FVector2D& SecondPoint);
+
 
 };

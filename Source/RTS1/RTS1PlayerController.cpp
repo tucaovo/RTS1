@@ -23,3 +23,9 @@ void ARTS1PlayerController::MoveSelectedUnits() {
 		Cast<ABaseUnit>(SelectedUnit)->MoveToLocation(PlayerPawn->MouseLocationInWorld); 
 	}
 }
+
+void ARTS1PlayerController::AttackUnits() {
+	for (AActor* SelectedUnit : SelectedUnits) {
+		UE_LOG(LogTemp, Error, TEXT("Atachengo"));
+	}
+}

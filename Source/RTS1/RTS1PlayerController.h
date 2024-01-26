@@ -17,8 +17,13 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "GetUnitDebug")
 		TArray<AActor*> SelectedUnits;
+	UPROPERTY(EditAnywhere, Category = "GetUnitDebug")
+		TArray<AActor*> ToAttackUnits;
 
 	void MoveSelectedUnits();
+
+	void AttackUnits();
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

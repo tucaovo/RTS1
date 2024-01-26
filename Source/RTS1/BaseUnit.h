@@ -18,7 +18,7 @@ public:
 	// Sets default values for this character's properties
 	ABaseUnit();
 
-	UPROPERTY(EditAnywhere, Category = "UnitDebug")
+	UPROPERTY(EditAnywhere, Category = "UnitDebug", BlueprintReadWrite)
 		int IsEnemy = 0;
 	UPROPERTY(EditAnywhere, Category = "UnitDebug")
 		int Morale=100;
@@ -37,9 +37,6 @@ public:
 		TArray<AActor*> NearUnits;
 
 	UStaticMeshComponent* RangeSphere;
-	
-	//UPROPERTY(EditAnywhere)
-	//USphereComponent* RangeSphere;
 
 protected:
 	// Called when the game starts or when spawned
@@ -49,14 +46,27 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	void CheckManpower();
+
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	UFUNCTION()
 	void WhenClickOverTheUnit(UPrimitiveComponent* PrimComp, FKey InKey);
 
+	UFUNCTION()
+	void WhenRightClickOverTheUnit(UPrimitiveComponent* PrimComp, FKey InKey);
+
+	UFUNCTION()
+	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
 	void MoveToLocation(FVector MouseLocationInWorld);
 
 	void LookForEnemies();
+
+	void FightBattle();
 
 };

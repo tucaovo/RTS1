@@ -21,6 +21,8 @@
 APlayerPawn::APlayerPawn()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	UGameplayStatics::GetAllActorsOfClass(this, ABaseUnit::StaticClass(), SecondaryArray);
+
 }
 
 void APlayerPawn::BeginPlay()
@@ -32,6 +34,15 @@ void APlayerPawn::BeginPlay()
 		Subsystem->AddMappingContext(InputMappingContext, 0);
 	}
 	PlayerController->GetHUD()->ShowHUD();
+	float UnitX, UnitY;
+	for (int i = 0; i < SecondaryArray.Num(); i++) {
+		if (CastChecked<ABaseUnit>(SecondaryArray[i])->IsEnemy == 0)
+		{
+			UnitX = SecondaryArray[i]->GetActorLocation().X;
+			UnitY = SecondaryArray[i]->GetActorLocation().Y;
+			SecondaryLocationArray.Add(FVector2D(UnitX, UnitY));
+		}
+	}
 }
 
 void APlayerPawn::Tick(float DeltaTime)
@@ -42,6 +53,17 @@ void APlayerPawn::Tick(float DeltaTime)
 	PlayerController->GetMousePosition(MouseX, MouseY);
 	MousePositionX = MouseX;
 	MousePositionY = MouseY;
+
+	float UnitX, UnitY;
+	SecondaryLocationArray.Empty();
+	for (int i = 0; i < SecondaryArray.Num(); i++) {
+		if (CastChecked<ABaseUnit>(SecondaryArray[i])->IsEnemy == 0)
+		{
+			UnitX = SecondaryArray[i]->GetActorLocation().X;
+			UnitY = SecondaryArray[i]->GetActorLocation().Y;
+			SecondaryLocationArray.Add(FVector2D(UnitX, UnitY));
+		}
+	}
 }
 
 void APlayerPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -85,11 +107,11 @@ void APlayerPawn::Select(const FInputActionValue& Value) {
 	{
 		MouseStartXPosition = XPosition;
 		MouseStartYPosition = YPosition;
-		FirstLineTrace=BuildLineTrace();
+		FirstLineTrace=BuildLineTrace(ECC_EngineTraceChannel1);
 		HUD->ShowHUD();
 	}
 }
-
+                     
 void APlayerPawn::RightClick(const FInputActionValue& Value) {
 	ARTS1PlayerController* PlayerController = CastChecked<ARTS1PlayerController>(GetController());
 	PlayerController->DeprojectMousePositionToWorld(WorldLocation, WorldDirection);
@@ -98,6 +120,14 @@ void APlayerPawn::RightClick(const FInputActionValue& Value) {
 	MouseLocationInWorld = HitResult.ImpactPoint;
 	PlayerController->MoveSelectedUnits();
 }
+//void APlayerPawn::RightClick(const FInputActionValue& Value) {
+//	ARTS1PlayerController* PlayerController = CastChecked<ARTS1PlayerController>(GetController());
+//	/*PlayerController->DeprojectMousePositionToWorld(WorldLocation, WorldDirection);
+//	FHitResult HitResult;
+//	GetWorld()->LineTraceSingleByChannel(HitResult, WorldLocation, WorldLocation + WorldDirection * 10000.f, ECC_GameTraceChannel1);*/
+//	MouseLocationInWorld = BuildLineTrace(ECC_EngineTraceChannel1);
+//	PlayerController->MoveSelectedUnits();
+//}
 
 void APlayerPawn::Shift(const FInputActionValue& Value)
 {
@@ -106,12 +136,12 @@ void APlayerPawn::Shift(const FInputActionValue& Value)
 
 void APlayerPawn::AfterSelect(const FInputActionValue& Value)
 {
-	APlayerController* PlayerController = CastChecked<APlayerController>(GetController());
+	ARTS1PlayerController* PlayerController = CastChecked<ARTS1PlayerController>(GetController());
 	AHUD* HUD = Cast<AHUD>(PlayerController->GetHUD());
 	if (HUD->bShowHUD == true)
 	{
 		HUD->ShowHUD();
-		SecondLineTrace = BuildLineTrace();
+		SecondLineTrace = BuildLineTrace(ECC_EngineTraceChannel1);
 		GetUnitsUnderRect();
 	}
 }
@@ -126,7 +156,7 @@ void APlayerPawn::GetUnitsUnderRect() {
 	ReshapeRectangle(FirstPoint, SecondPoint);
 	ABaseUnit* BaseUnit;
 	for (int i = 0; i < SecondaryArray.Num(); i++) {
-		UnitX=SecondaryArray[i]->GetActorLocation().X;
+		UnitX = SecondaryArray[i]->GetActorLocation().X;
 		UnitY = SecondaryArray[i]->GetActorLocation().Y;
 		BaseUnit = Cast<ABaseUnit>(SecondaryArray[i]);
 		if (UnitX >= FirstPoint.X && UnitX <= SecondPoint.X && UnitY >= FirstPoint.Y && UnitY <= SecondPoint.Y && BaseUnit->IsEnemy==0) {
@@ -135,7 +165,7 @@ void APlayerPawn::GetUnitsUnderRect() {
 	}
 }
 
-FVector APlayerPawn::BuildLineTrace() {
+FVector APlayerPawn::BuildLineTrace(ECollisionChannel CollisionChannel) {
 	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
 	TArray<FHitResult> OutHits;
 	FHitResult OutHit;
@@ -144,7 +174,7 @@ FVector APlayerPawn::BuildLineTrace() {
 	PlayerController->DeprojectMousePositionToWorld(Start, End);
 	FCollisionQueryParams CollisionParams;
 		End = (End * 100000.f) + Start;
-		GetWorld()->LineTraceSingleByChannel(OutHit, Start, End, ECC_GameTraceChannel1, CollisionParams);
+		GetWorld()->LineTraceSingleByChannel(OutHit, Start, End, CollisionChannel, CollisionParams);
 		if (OutHit.bBlockingHit) {
 			return OutHit.ImpactPoint;			
 		}
